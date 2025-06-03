@@ -1,85 +1,116 @@
 const Product = require("../models/product");
+const { cloudinary } = require("../config/cloudinary");
 
+// Crear producto
 const createProduct = async (req, res) => {
   try {
     const { title, description } = req.body;
 
-    const newProduct = new Product({
+    if (!title || !description) {
+      return res.status(400).json({ msg: "Título y descripción son obligatorios" });
+    }
+
+    let images = [];
+    if (req.files && req.files.length > 0) {
+      images = req.files.map(file => ({
+        url: file.path,
+        public_id: file.filename
+      }));
+    }
+
+    const nuevoProducto = new Product({
       title,
       description,
+      images,
+      createdBy: req.user._id
     });
 
-    await newProduct.save();
+    await nuevoProducto.save();
 
-    res.status(201).json(newProduct);
+    res.status(201).json(nuevoProducto);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al crear producto" });
+    res.status(500).json({ msg: "Error al crear producto", error: error.message });
   }
 };
 
+// Obtener todos los productos
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find().populate('createdBy');
-    res.status(200).json(products);
+    const productos = await Product.find()
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(productos);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al obtener productos" });
+    res.status(500).json({ msg: "Error al obtener productos", error: error.message });
   }
 };
 
+// Obtener un solo producto
 const getProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findById(id).populate('createdBy');
-    if (!product) {
+    const producto = await Product.findById(id).populate('createdBy', 'name email');
+
+    if (!producto) {
       return res.status(404).json({ msg: "Producto no encontrado" });
     }
 
-    res.status(200).json(product);
+    res.status(200).json(producto);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al obtener producto" });
+    res.status(500).json({ msg: "Error al buscar producto", error: error.message });
   }
 };
 
+// Actualizar producto
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description } = req.body;
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      id,
-      { title, description },
-      { new: true }
-    );
+    const datosActualizados = { title, description };
 
-    if (!updatedProduct) {
+    if (req.files && req.files.length > 0) {
+      datosActualizados.images = req.files.map(file => ({
+        url: file.path,
+        public_id: file.filename
+      }));
+    }
+
+    const productoActualizado = await Product.findByIdAndUpdate(id, datosActualizados, { new: true })
+      .populate('createdBy', 'name email');
+
+    if (!productoActualizado) {
       return res.status(404).json({ msg: "Producto no encontrado" });
     }
 
-    res.status(200).json(updatedProduct);
+    res.status(200).json(productoActualizado);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al actualizar producto" });
+    res.status(500).json({ msg: "Error al actualizar producto", error: error.message });
   }
 };
 
+// Eliminar producto
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedProduct = await Product.findByIdAndDelete(id);
-
-    if (!deletedProduct) {
+    const producto = await Product.findById(id);
+    if (!producto) {
       return res.status(404).json({ msg: "Producto no encontrado" });
     }
 
-    res.status(200).json({ msg: "Producto eliminado" });
+    // Borrar imágenes en Cloudinary
+    for (const img of producto.images) {
+      await cloudinary.uploader.destroy(img.public_id);
+    }
+
+    await Product.findByIdAndDelete(id);
+
+    res.status(200).json({ msg: "Producto eliminado correctamente" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Error al eliminar producto" });
+    res.status(500).json({ msg: "Error al eliminar producto", error: error.message });
   }
 };
 

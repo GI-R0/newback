@@ -2,28 +2,32 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const auth = (req, res, next) => {
-  const authHeader = req.header('Authorization');
+    console.log('Headers recibidos:', req.headers);
+    const authHeader = req.header('Authorization');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('Error: No se proporcionó el token o formato incorrecto');
+        return res.status(401).json({ 
+            message: 'No se proporcionó el token de autenticación',
+            received: authHeader
+        });
+    }
 
-  if (!authHeader) {
-    return res.status(401).json({ message: 'No se proporcionó el token de autenticación' });
-  }
+    const token = authHeader.split(' ')[1];
+    console.log('Token extraído:', token);
 
-  const token = authHeader.startsWith('Bearer ') 
-    ? authHeader.split(' ')[1] 
-    : authHeader;
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Token decodificado:', decoded);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        console.error('Error verificando token:', error.message);
+        return res.status(401).json({ 
+            message: 'Token inválido o expirado',
+            error: error.message
+        });
+    }
+}
 
-  if (!token) {
-    return res.status(401).json({ message: 'Token no válido o faltante' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; 
-    next();
-  } catch (error) {
-    console.error('Error verificando token:', error.message);
-    return res.status(401).json({ message: 'Token inválido o expirado' });
-  }
-};
-
-module.exports = auth;
+module.exports = { auth };

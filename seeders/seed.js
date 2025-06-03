@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
-const Product = require('../backen/models/product');
+const Product = require('../models/product');
 require('dotenv').config();
 
 const products = [
-  { title: 'Producto 1', description: 'Descripción 1' },
-  { title: 'Producto 2', description: 'Descripción 2' },
-  { title: 'Producto 3', description: 'Descripción 3' },
+  { title: 'Producto 1', description: 'Descripción 1', createdBy: '6834e3cde3f77bd49901d7bf' },
+  { title: 'Producto 2', description: 'Descripción 2', createdBy: '6834e3cde3f77bd49901d7bf' },
+  { title: 'Producto 3', description: 'Descripción 3', createdBy: '6834e3cde3f77bd49901d7bf' },
 ];
 
 mongoose.connect(process.env.MONGO_URI)

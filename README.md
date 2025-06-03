@@ -42,7 +42,7 @@ Para iniciar el backend, usa el siguiente comando:
 
 
 node app.js
-El servidor estará disponible en http://localhost:5000.
+El servidor estará disponible en        http://localhost:5000.
 
 
 

@@ -21,9 +21,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
-  },
-  cloudinary_id: {
-    type: String
+  }, 
+  image: {
+    url: String,
+    public_id: String
   },
   products: [{
     type: mongoose.Schema.Types.ObjectId,
