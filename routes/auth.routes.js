@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const { register, login } = require("../controllers/auth.controller");
-const { upload } = require("../config/cloudinary");
+const { upload, handleMulterError } = require("../config/cloudinary");
 
-router.post("/register", upload.single("image"), register);
+router.post("/register", upload, handleMulterError, register);
 
 router.post("/login", login);
 
