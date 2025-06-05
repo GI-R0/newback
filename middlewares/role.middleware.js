@@ -1,20 +1,41 @@
+const checkRole = (roles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ 
+                mensaje: 'Necesitas iniciar sesión para continuar'
+            });
+        }
 
-const isAdmin = (req, res, next) => {
-  if (req.user.rol !== "admin") {
-    return res.status(403).json({ message: "Permiso denegado: solo administradores" });
-  }
-  next();
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ 
+                mensaje: 'No tienes permiso para realizar esta acción'
+            });
+        }
+
+        next();
+    };
 };
 
+const isAdmin = (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ 
+            mensaje: 'Solo los administradores pueden realizar esta acción'
+        });
+    }
+    next();
+};
 
 const esMismoUsuarioOAdmin = (req, res, next) => {
-  if (req.user.rol !== "admin" && req.user.id !== req.params.id) {
-    return res.status(403).json({ message: "Solo puedes modificar tu propia cuenta" });
-  }
-  next();
+    if (req.user.role !== 'admin' && req.user._id !== req.params.id) {
+        return res.status(403).json({ 
+            mensaje: 'Solo puedes modificar tu propia cuenta'
+        });
+    }
+    next();
 };
 
 module.exports = {
-  isAdmin,
-  esMismoUsuarioOAdmin,
+    checkRole,
+    isAdmin,
+    esMismoUsuarioOAdmin
 };
