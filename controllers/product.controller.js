@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const { cloudinary } = require("../config/cloudinary");
+const { upload } = require("../config/cloudinary");
 
 
 const createProduct = async (req, res) => {
@@ -157,8 +158,8 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-(!id.match(/^[0-9a-fA-F]{24}$/)
-    if ) {
+    
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ mensaje: "El ID del producto no es válido" });
     }
 
